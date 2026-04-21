@@ -1,0 +1,24 @@
+[project]
+name = "contaccum"
+version = "0.1.0"
+description = "Contrastive Accumulation ported to Sentence Transformers"
+requires-python = ">=3.10"
+dependencies = [
+    "sentence-transformers",
+    "datasets>=2.0.0",
+    "accelerate>=0.20.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ipykernel",
+    "jupyter",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+sentence-transformers = { path = "../sentence-transformers", editable = true }
