@@ -54,6 +54,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
+RUN mkdir -p -m 755 /etc/apt/keyrings \
+ && wget -qO /etc/apt/keyrings/githubcli-archive-keyring.gpg https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+ && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+ && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+      > /etc/apt/sources.list.d/github-cli.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+    gh \
+    git-lfs \
+    rsync \
+ && git lfs install --system \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN ln -sf "$(command -v fdfind)" /usr/local/bin/fd \
  && ln -sf "$(command -v batcat)" /usr/local/bin/bat
 
@@ -113,6 +126,44 @@ RUN git config --global init.defaultBranch main \
  && git config --global pull.rebase false \
  && git config --global user.name "${GIT_NAME}" \
  && git config --global user.email "${GIT_EMAIL}"
+
+RUN mkdir -p "${HOME}/.local/bin" \
+ && cat > "${HOME}/.local/bin/init-dev-auth" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+github_token="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
+if [[ -z "${github_token}" && -f "${HOME}/.config/github/token" ]]; then
+  github_token="$(<"${HOME}/.config/github/token")"
+fi
+
+if [[ -n "${github_token}" ]]; then
+  if command -v gh >/dev/null 2>&1 && ! gh auth status >/dev/null 2>&1; then
+    printf '%s\n' "${github_token}" | gh auth login --with-token >/dev/null
+  fi
+  if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+    gh auth setup-git >/dev/null
+  elif ! git config --global credential.https://github.com.helper >/dev/null; then
+    git config --global credential.https://github.com.helper store
+    printf 'protocol=https\nhost=github.com\nusername=x-access-token\npassword=%s\n\n' "${github_token}" | git credential approve
+  fi
+fi
+
+huggingface_token="${HF_TOKEN:-${HUGGINGFACE_TOKEN:-}}"
+if [[ -z "${huggingface_token}" && -f "${HOME}/.config/huggingface/token" ]]; then
+  huggingface_token="$(<"${HOME}/.config/huggingface/token")"
+fi
+
+if [[ -n "${huggingface_token}" ]]; then
+  mkdir -p "${HOME}/.cache/huggingface" "${HOME}/.config/huggingface"
+  chmod 700 "${HOME}/.cache/huggingface" "${HOME}/.config/huggingface"
+  printf '%s' "${huggingface_token}" > "${HOME}/.cache/huggingface/token"
+  printf '%s' "${huggingface_token}" > "${HOME}/.config/huggingface/token"
+  chmod 600 "${HOME}/.cache/huggingface/token" "${HOME}/.config/huggingface/token"
+fi
+EOF
+
+RUN chmod 700 "${HOME}/.local/bin/init-dev-auth"
 
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended \
  && git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
@@ -198,6 +249,7 @@ alias ll='eza -lah --icons --git --group-directories-first'
 alias lt='eza --tree --level=2 --icons'
 alias cat='bat'
 alias cdbase='cd /workspace'
+alias auth-init='init-dev-auth'
 
 bindkey '^[[A' history-substring-search-up
 bindkey '^[[B' history-substring-search-down

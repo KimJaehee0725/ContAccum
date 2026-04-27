@@ -1,0 +1,6 @@
+# Keep directory structure and docs, but never commit credentials.
+/github/token
+/huggingface/token
+/gh/**
+!/gh/.gitkeep
+
