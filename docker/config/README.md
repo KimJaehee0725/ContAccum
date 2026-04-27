@@ -1,16 +1,43 @@
 # Docker Runtime Config
 
-`make_container.sh` requires this directory and mounts it into the container.
+`make_container.sh` requires this directory.
 
-Create these local-only files before starting the container:
+## Tokens
+
+Create one local-only token file before starting the container:
 
 ```bash
-mkdir -p docker/config/gh docker/config/github docker/config/huggingface
-cp docker/config/github/token.example docker/config/github/token
-cp docker/config/huggingface/token.example docker/config/huggingface/token
-vim docker/config/github/token
-vim docker/config/huggingface/token
-chmod 600 docker/config/github/token docker/config/huggingface/token
+cp docker/config/.tokens.example docker/config/.tokens
+vim docker/config/.tokens
+chmod 600 docker/config/.tokens
 ```
 
-The token files are intentionally ignored by git.
+`.tokens` supports:
+
+```bash
+GITHUB_TOKEN=...
+HF_TOKEN=...
+WANDB_API_KEY=...
+```
+
+The real `.tokens` file is intentionally ignored by git.
+
+## Volumes And Ports
+
+Container runtime settings, volumes, and ports are managed in `docker/config/runtime.env`.
+
+```bash
+IMAGE_NAME=jaehee-base:0404
+CONTAINER_NAME=jaehee-contaccum-refine
+WORKSPACE_DIR=/workspace
+VOLUMES="/home/jaeheekim/codes:/workspace /media/data:/data"
+EXTRA_VOLUMES=
+PORTS=9204:9204
+```
+
+Use whitespace or commas for multiple entries, e.g.:
+
+```bash
+PORTS="9204:9204 7860:7860"
+EXTRA_VOLUMES="/tmp:/tmp,/scratch:/scratch"
+```

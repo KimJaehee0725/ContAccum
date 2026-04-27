@@ -4,26 +4,34 @@ set -euo pipefail
 ##### env-overridable settings #####
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOCKER_CONFIG_DIR="${SCRIPT_DIR}/config"
+RUNTIME_CONFIG_FILE="${DOCKER_CONFIG_DIR}/runtime.env"
+TOKENS_FILE="${DOCKER_CONFIG_DIR}/.tokens"
 
-IMAGE_NAME="${IMAGE_NAME:-jaehee-base:0404}"
-CONTAINER_NAME="${CONTAINER_NAME:-jaehee-contaccum-refine}"
+if [[ ! -f "${RUNTIME_CONFIG_FILE}" ]]; then
+  echo "Error: missing runtime config file: ${RUNTIME_CONFIG_FILE}" >&2
+  exit 1
+fi
+if [[ ! -f "${TOKENS_FILE}" ]]; then
+  echo "Error: missing token config file: ${TOKENS_FILE}" >&2
+  exit 1
+fi
 
-HOST_CODE_DIR="${HOST_CODE_DIR:-/home/jaeheekim/codes}"
-WORKSPACE_DIR="${WORKSPACE_DIR:-/workspace}"
-HOST_DATA_DIR="${HOST_DATA_DIR:-/media/data}"
-CONTAINER_DATA_DIR="${CONTAINER_DATA_DIR:-/data}"
+set -a
+# shellcheck disable=SC1090
+source "${RUNTIME_CONFIG_FILE}"
+set +a
+
+IMAGE_NAME="${IMAGE_NAME:?IMAGE_NAME must be set in ${RUNTIME_CONFIG_FILE}}"
+CONTAINER_NAME="${CONTAINER_NAME:?CONTAINER_NAME must be set in ${RUNTIME_CONFIG_FILE}}"
 
 # Whitespace- or comma-separated lists.
 # Example:
 #   PORTS="9204:9204 7860:7860"
 #   VOLUMES="/home/jaeheekim/codes:/workspace /media/data:/data"
-PORTS="${PORTS:-9204:9204}"
-VOLUMES="${VOLUMES:-${HOST_CODE_DIR}:${WORKSPACE_DIR} ${HOST_DATA_DIR}:${CONTAINER_DATA_DIR}}"
+PORTS="${PORTS:?PORTS must be set in ${RUNTIME_CONFIG_FILE}}"
+VOLUMES="${VOLUMES:?VOLUMES must be set in ${RUNTIME_CONFIG_FILE}}"
 EXTRA_VOLUMES="${EXTRA_VOLUMES:-}"
-
-HOST_GH_CONFIG_DIR="${DOCKER_CONFIG_DIR}/gh"
-HOST_GITHUB_CONFIG_DIR="${DOCKER_CONFIG_DIR}/github"
-HOST_HUGGINGFACE_CONFIG_DIR="${DOCKER_CONFIG_DIR}/huggingface"
+WORKSPACE_DIR="${WORKSPACE_DIR:?WORKSPACE_DIR must be set in ${RUNTIME_CONFIG_FILE}}"
 ####################################
 
 TERM_VALUE="${TERM:-xterm-256color}"
@@ -84,22 +92,7 @@ add_list_args -v "${VOLUMES}" append_mount_arg
 add_list_args -v "${EXTRA_VOLUMES}" append_mount_arg
 add_list_args -p "${PORTS}" append_port_arg
 
-if [[ ! -d "${HOST_GH_CONFIG_DIR}" ]]; then
-  echo "Error: missing GitHub CLI config directory: ${HOST_GH_CONFIG_DIR}" >&2
-  exit 1
-fi
-if [[ ! -f "${HOST_GITHUB_CONFIG_DIR}/token" ]]; then
-  echo "Error: missing GitHub token file: ${HOST_GITHUB_CONFIG_DIR}/token" >&2
-  exit 1
-fi
-if [[ ! -f "${HOST_HUGGINGFACE_CONFIG_DIR}/token" ]]; then
-  echo "Error: missing Hugging Face token file: ${HOST_HUGGINGFACE_CONFIG_DIR}/token" >&2
-  exit 1
-fi
-
-MOUNT_ARGS+=(-v "${HOST_GH_CONFIG_DIR}:${CONTAINER_HOME}/.config/gh")
-MOUNT_ARGS+=(-v "${HOST_GITHUB_CONFIG_DIR}:${CONTAINER_HOME}/.config/github:ro")
-MOUNT_ARGS+=(-v "${HOST_HUGGINGFACE_CONFIG_DIR}:${CONTAINER_HOME}/.config/huggingface")
+MOUNT_ARGS+=(-v "${TOKENS_FILE}:${CONTAINER_HOME}/.config/dev-tokens/.tokens:ro")
 
 # If the container already exists, reuse it.
 if docker ps -a --format '{{.Names}}' | grep -Fxq "${CONTAINER_NAME}"; then

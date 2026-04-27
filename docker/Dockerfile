@@ -133,8 +133,17 @@ RUN mkdir -p "${HOME}/.local/bin" \
 set -euo pipefail
 
 github_token="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
-if [[ -z "${github_token}" && -f "${HOME}/.config/github/token" ]]; then
-  github_token="$(<"${HOME}/.config/github/token")"
+hf_token="${HF_TOKEN:-${HUGGINGFACE_TOKEN:-}}"
+wandb_token="${WANDB_API_KEY:-}"
+
+if [[ -f "${HOME}/.config/dev-tokens/.tokens" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "${HOME}/.config/dev-tokens/.tokens"
+  set +a
+  github_token="${GITHUB_TOKEN:-${GH_TOKEN:-${github_token}}}"
+  hf_token="${HF_TOKEN:-${HUGGINGFACE_TOKEN:-${hf_token}}}"
+  wandb_token="${WANDB_API_KEY:-${wandb_token}}"
 fi
 
 if [[ -n "${github_token}" ]]; then
@@ -149,17 +158,22 @@ if [[ -n "${github_token}" ]]; then
   fi
 fi
 
-huggingface_token="${HF_TOKEN:-${HUGGINGFACE_TOKEN:-}}"
-if [[ -z "${huggingface_token}" && -f "${HOME}/.config/huggingface/token" ]]; then
-  huggingface_token="$(<"${HOME}/.config/huggingface/token")"
-fi
-
-if [[ -n "${huggingface_token}" ]]; then
+if [[ -n "${hf_token}" ]]; then
   mkdir -p "${HOME}/.cache/huggingface" "${HOME}/.config/huggingface"
   chmod 700 "${HOME}/.cache/huggingface" "${HOME}/.config/huggingface"
-  printf '%s' "${huggingface_token}" > "${HOME}/.cache/huggingface/token"
-  printf '%s' "${huggingface_token}" > "${HOME}/.config/huggingface/token"
+  printf '%s' "${hf_token}" > "${HOME}/.cache/huggingface/token"
+  printf '%s' "${hf_token}" > "${HOME}/.config/huggingface/token"
   chmod 600 "${HOME}/.cache/huggingface/token" "${HOME}/.config/huggingface/token"
+fi
+
+if [[ -n "${wandb_token}" ]]; then
+  rm -rf "${HOME}/.netrc"
+  cat > "${HOME}/.netrc" <<NETRC
+machine api.wandb.ai
+  login user
+  password ${wandb_token}
+NETRC
+  chmod 600 "${HOME}/.netrc"
 fi
 EOF
 
