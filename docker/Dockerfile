@@ -220,91 +220,91 @@ EOF
 RUN mkdir -p "${HOME}/.codex/skills" "${HOME}/.claude/skills"
 
 RUN mkdir -p "${HOME}/.codex/skills/paper-triage" "${HOME}/.claude/skills/paper-triage" \
- && cat > "${HOME}/.codex/skills/paper-triage/SKILL.md" <<'EOF' \
+ && printf '%s\n' \
+    '---' \
+    'name: paper-triage' \
+    'description: Rapidly triage NLP/ML papers and extract contribution, method, datasets, metrics, limitations, and reproducibility risks.' \
+    '---' \
+    '' \
+    'Use this skill when the user asks to read, summarize, compare, or assess an NLP/ML paper.' \
+    '' \
+    'Workflow:' \
+    '1. Identify problem and claimed contribution.' \
+    '2. Extract method, data, evaluation, and baselines.' \
+    '3. Flag reproducibility gaps and weak comparisons.' \
+    '4. End with what is truly new and what to reproduce first.' \
+    > "${HOME}/.codex/skills/paper-triage/SKILL.md" \
  && cp "${HOME}/.codex/skills/paper-triage/SKILL.md" "${HOME}/.claude/skills/paper-triage/SKILL.md"
----
-name: paper-triage
-description: Rapidly triage NLP/ML papers and extract contribution, method, datasets, metrics, limitations, and reproducibility risks.
----
-
-Use this skill when the user asks to read, summarize, compare, or assess an NLP/ML paper.
-
-Workflow:
-1. Identify problem and claimed contribution.
-2. Extract method, data, evaluation, and baselines.
-3. Flag reproducibility gaps and weak comparisons.
-4. End with what is truly new and what to reproduce first.
-EOF
 
 RUN mkdir -p "${HOME}/.codex/skills/experiment-planner" "${HOME}/.claude/skills/experiment-planner" \
- && cat > "${HOME}/.codex/skills/experiment-planner/SKILL.md" <<'EOF' \
+ && printf '%s\n' \
+    '---' \
+    'name: experiment-planner' \
+    'description: Design robust NLP experiments with baselines, ablations, seeds, metrics, and stop/go criteria.' \
+    '---' \
+    '' \
+    'Use this skill when the user wants experiment design or ablation planning.' \
+    '' \
+    'Workflow:' \
+    '1. Restate the hypothesis.' \
+    '2. Define minimal baselines.' \
+    '3. Define variables and ablations.' \
+    '4. Require seeds, fixed splits, and variance reporting.' \
+    '5. End with a concise run sheet.' \
+    > "${HOME}/.codex/skills/experiment-planner/SKILL.md" \
  && cp "${HOME}/.codex/skills/experiment-planner/SKILL.md" "${HOME}/.claude/skills/experiment-planner/SKILL.md"
----
-name: experiment-planner
-description: Design robust NLP experiments with baselines, ablations, seeds, metrics, and stop/go criteria.
----
-
-Use this skill when the user wants experiment design or ablation planning.
-
-Workflow:
-1. Restate the hypothesis.
-2. Define minimal baselines.
-3. Define variables and ablations.
-4. Require seeds, fixed splits, and variance reporting.
-5. End with a concise run sheet.
-EOF
 
 RUN mkdir -p "${HOME}/.codex/skills/error-analysis" "${HOME}/.claude/skills/error-analysis" \
- && cat > "${HOME}/.codex/skills/error-analysis/SKILL.md" <<'EOF' \
+ && printf '%s\n' \
+    '---' \
+    'name: error-analysis' \
+    'description: Perform structured NLP error analysis on predictions, labels, generations, retrieval misses, and evaluation failures.' \
+    '---' \
+    '' \
+    'Use this skill when the user asks why a model failed or how to categorize failures.' \
+    '' \
+    'Workflow:' \
+    '1. Separate metric failure from product failure.' \
+    '2. Bucket representative errors.' \
+    '3. Hypothesize root causes.' \
+    '4. Propose the smallest confirming experiment.' \
+    > "${HOME}/.codex/skills/error-analysis/SKILL.md" \
  && cp "${HOME}/.codex/skills/error-analysis/SKILL.md" "${HOME}/.claude/skills/error-analysis/SKILL.md"
----
-name: error-analysis
-description: Perform structured NLP error analysis on predictions, labels, generations, retrieval misses, and evaluation failures.
----
-
-Use this skill when the user asks why a model failed or how to categorize failures.
-
-Workflow:
-1. Separate metric failure from product failure.
-2. Bucket representative errors.
-3. Hypothesize root causes.
-4. Propose the smallest confirming experiment.
-EOF
 
 RUN mkdir -p "${HOME}/.codex/skills/dataset-audit" "${HOME}/.claude/skills/dataset-audit" \
- && cat > "${HOME}/.codex/skills/dataset-audit/SKILL.md" <<'EOF' \
+ && printf '%s\n' \
+    '---' \
+    'name: dataset-audit' \
+    'description: Audit NLP datasets for leakage, duplication, imbalance, annotation artifacts, and split contamination.' \
+    '---' \
+    '' \
+    'Use this skill when the user wants to inspect datasets or corpus quality.' \
+    '' \
+    'Checklist:' \
+    '1. Schema and provenance.' \
+    '2. Split leakage and near-duplicates.' \
+    '3. Class/domain/length imbalance.' \
+    '4. Annotation artifacts and cleanup priorities.' \
+    > "${HOME}/.codex/skills/dataset-audit/SKILL.md" \
  && cp "${HOME}/.codex/skills/dataset-audit/SKILL.md" "${HOME}/.claude/skills/dataset-audit/SKILL.md"
----
-name: dataset-audit
-description: Audit NLP datasets for leakage, duplication, imbalance, annotation artifacts, and split contamination.
----
-
-Use this skill when the user wants to inspect datasets or corpus quality.
-
-Checklist:
-1. Schema and provenance.
-2. Split leakage and near-duplicates.
-3. Class/domain/length imbalance.
-4. Annotation artifacts and cleanup priorities.
-EOF
 
 RUN mkdir -p "${HOME}/.codex/skills/repro-check" "${HOME}/.claude/skills/repro-check" \
- && cat > "${HOME}/.codex/skills/repro-check/SKILL.md" <<'EOF' \
+ && printf '%s\n' \
+    '---' \
+    'name: repro-check' \
+    'description: Check reproducibility for NLP/ML experiments, including seeds, environments, configs, logging, and artifact traceability.' \
+    '---' \
+    '' \
+    'Use this skill when the user wants to reproduce results or explain run-to-run variance.' \
+    '' \
+    'Checklist:' \
+    '1. Environment and versions.' \
+    '2. Config completeness.' \
+    '3. Data snapshot/version.' \
+    '4. Artifact lineage.' \
+    '5. Most likely causes of mismatch.' \
+    > "${HOME}/.codex/skills/repro-check/SKILL.md" \
  && cp "${HOME}/.codex/skills/repro-check/SKILL.md" "${HOME}/.claude/skills/repro-check/SKILL.md"
----
-name: repro-check
-description: Check reproducibility for NLP/ML experiments, including seeds, environments, configs, logging, and artifact traceability.
----
-
-Use this skill when the user wants to reproduce results or explain run-to-run variance.
-
-Checklist:
-1. Environment and versions.
-2. Config completeness.
-3. Data snapshot/version.
-4. Artifact lineage.
-5. Most likely causes of mismatch.
-EOF
 
 # codex-plugin-cc
 # The plugin itself is prepared here, but Claude-side activation still happens inside Claude Code.

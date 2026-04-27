@@ -9,10 +9,10 @@ CONTAINER_NAME="jaehee-contaccum-refine"
 #   HOST_CODE_DIR -> /workspace
 # Data volume:
 #   HOST_DATA_DIR -> /data
-HOST_CODE_DIR="/home/jaeheekim/codes/personnal_study"
+HOST_CODE_DIR="/home/jaeheekim/codes"
 WORKSPACE_DIR="/workspace"
 
-HOST_DATA_DIR="/data3/jaehee"
+HOST_DATA_DIR="/media/data"
 CONTAINER_DATA_DIR="/data"
 
 PORTS=(
