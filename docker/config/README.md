@@ -1,6 +1,6 @@
 # Docker Runtime Config
 
-`make_container.sh` requires this directory.
+`build_image.sh` and `make_container.sh` require this directory.
 
 ## Tokens
 
@@ -24,15 +24,27 @@ The real `.tokens` file is intentionally ignored by git.
 
 ## Volumes And Ports
 
-Container runtime settings, volumes, and ports are managed in `docker/config/runtime.env`.
+Image build settings, container runtime settings, volumes, and ports are managed in
+`docker/config/runtime.env`.
 
 ```bash
 IMAGE_NAME=jaehee-base:0404
+DOCKERFILE_PATH=docker/Dockerfile
+BUILD_CONTEXT_DIR=.
+NO_CACHE=0
+
 CONTAINER_NAME=jaehee-contaccum-refine
 WORKSPACE_DIR=/workspace
 VOLUMES="/home/jaeheekim/codes:/workspace /media/data:/data"
 EXTRA_VOLUMES=
 PORTS=9204:9204
+```
+
+`DOCKERFILE_PATH` and `BUILD_CONTEXT_DIR` may be absolute paths or paths relative
+to the repository root. Build the image with:
+
+```bash
+bash docker/build_image.sh
 ```
 
 Use whitespace or commas for multiple entries, e.g.:
