@@ -23,6 +23,7 @@ set +a
 
 IMAGE_NAME="${IMAGE_NAME:?IMAGE_NAME must be set in ${RUNTIME_CONFIG_FILE}}"
 CONTAINER_NAME="${CONTAINER_NAME:?CONTAINER_NAME must be set in ${RUNTIME_CONFIG_FILE}}"
+AUTO_RECREATE="${AUTO_RECREATE:-0}"
 
 # Whitespace- or comma-separated lists.
 # Example:
@@ -98,6 +99,34 @@ MOUNT_ARGS+=(-v "${TOKENS_FILE}:${CONTAINER_HOME}/.config/dev-tokens/.tokens:ro"
 if docker ps -a --format '{{.Names}}' | grep -Fxq "${CONTAINER_NAME}"; then
   echo "Reusing existing container: ${CONTAINER_NAME}" >&2
   echo "Note: changed VOLUMES/PORTS/auth mounts only apply after removing and recreating the container." >&2
+
+  if [[ "${AUTO_RECREATE}" == "1" ]]; then
+    docker rm -f "${CONTAINER_NAME}" >/dev/null
+  else
+    if ! docker inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
+      echo "Error: container exists in docker ps output but cannot be inspected: ${CONTAINER_NAME}" >&2
+      exit 1
+    fi
+    if ! docker start "${CONTAINER_NAME}" >/dev/null; then
+      echo "Error: failed to start existing container: ${CONTAINER_NAME}" >&2
+      echo "Remove it and rerun: docker rm -f ${CONTAINER_NAME}" >&2
+      exit 1
+    fi
+    if ! docker exec -w / "${CONTAINER_NAME}" test -d "${WORKSPACE_DIR}"; then
+      old_workdir="$(docker inspect -f '{{.Config.WorkingDir}}' "${CONTAINER_NAME}" 2>/dev/null || true)"
+      echo "Error: WORKSPACE_DIR does not exist inside existing container: ${WORKSPACE_DIR}" >&2
+      if [[ -n "${old_workdir}" ]]; then
+        echo "Existing container image/workdir: ${old_workdir}" >&2
+      fi
+      echo "This usually means the container was created with old volume/workdir settings." >&2
+      echo "Remove and recreate it: docker rm -f ${CONTAINER_NAME} && bash ${BASH_SOURCE[0]}" >&2
+      echo "Or run once with AUTO_RECREATE=1: AUTO_RECREATE=1 bash ${BASH_SOURCE[0]}" >&2
+      exit 1
+    fi
+  fi
+fi
+
+if docker ps -a --format '{{.Names}}' | grep -Fxq "${CONTAINER_NAME}"; then
   if [[ "$(docker inspect -f '{{.State.Running}}' "${CONTAINER_NAME}")" != "true" ]]; then
     docker start "${CONTAINER_NAME}" >/dev/null
   fi

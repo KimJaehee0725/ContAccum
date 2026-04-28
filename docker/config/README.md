@@ -41,3 +41,17 @@ Use whitespace or commas for multiple entries, e.g.:
 PORTS="9204:9204 7860:7860"
 EXTRA_VOLUMES="/tmp:/tmp,/scratch:/scratch"
 ```
+
+If you change `VOLUMES`, `PORTS`, `WORKSPACE_DIR`, or token mounts after a
+container has already been created, remove and recreate the container:
+
+```bash
+docker rm -f jaehee-contaccum-refine
+bash docker/make_container.sh
+```
+
+Alternatively, recreate it in one command:
+
+```bash
+AUTO_RECREATE=1 bash docker/make_container.sh
+```
